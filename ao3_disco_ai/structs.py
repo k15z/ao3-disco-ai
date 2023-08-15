@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, field_validator
 
@@ -43,3 +43,7 @@ class Work(BaseModel):
 
     tags: Tags
     statistics: Statistics
+
+
+DenseMeta = List[str]
+SparseMeta = Dict[str, int]

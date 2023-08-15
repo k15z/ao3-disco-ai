@@ -4,6 +4,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from ao3_disco_ai.structs import DenseMeta, SparseMeta
+
 
 def build_interactions(embeddings: List[torch.tensor]) -> torch.tensor:
     """Compute interactions between embeddings.
@@ -21,7 +23,7 @@ def build_interactions(embeddings: List[torch.tensor]) -> torch.tensor:
 
 
 class SparseArch(nn.Module):
-    def __init__(self, cardinality, max_hash_size, embedding_dim):
+    def __init__(self, cardinality: int, max_hash_size: int, embedding_dim: int):
         super().__init__()
         self.max_hash_size = max_hash_size
         hidden_dims = max(16, int(1.6 * np.sqrt(cardinality)))
@@ -33,18 +35,18 @@ class SparseArch(nn.Module):
         )
         self._proj = nn.Linear(hidden_dims, embedding_dim)
 
-    def forward(self, id_list, offsets):
+    def forward(self, id_list: torch.tensor, offsets: torch.tensor) -> torch.tensor:
         return self._proj(self._embed(id_list % self.max_hash_size, offsets))
 
 
 class SparseNNV0(nn.Module):
     def __init__(
         self,
-        dense_meta,
-        sparse_meta,
-        embedding_dims,
-        max_hash_size,
-        use_interactions,
+        dense_meta: DenseMeta,
+        sparse_meta: SparseMeta,
+        embedding_dims: int,
+        max_hash_size: int,
+        use_interactions: bool,
     ):
         super().__init__()
         self.embedding_dims = embedding_dims

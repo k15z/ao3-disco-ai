@@ -26,9 +26,9 @@ def clean():
     print("Are you sure? This will result in data loss. (yes/no)")
     if input() != "yes":
         return
-    shutil.rmtree("data/dev")
-    shutil.rmtree("data/prod")
-    shutil.rmtree("lightning_logs")
+    shutil.rmtree("data/dev", ignore_errors=True)
+    shutil.rmtree("data/prod", ignore_errors=True)
+    shutil.rmtree("lightning_logs", ignore_errors=True)
 
 
 @app.command()

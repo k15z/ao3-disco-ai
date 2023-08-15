@@ -3,10 +3,23 @@ from random import shuffle
 from typing import Dict, List
 
 import numpy as np
-from pydantic import validate_call
 from sklearn.preprocessing import LabelEncoder, RobustScaler
 
-from ao3_disco_ai.structs import Work
+from ao3_disco_ai.structs import DenseMeta, SparseMeta, Work
+
+
+def parse_chapters(x):
+    """Parse a chapter string into a list of ints."""
+    x = x.replace(",", "")
+    if "/" not in x:
+        complete_chapters = int(x)
+        total_chapters = complete_chapters
+    else:
+        complete_chapters, total_chapters = x.split("/")
+        complete_chapters = int(complete_chapters)
+        total_chapters = int(total_chapters) if total_chapters != "?" else 0
+    is_complete = int(complete_chapters == total_chapters)
+    return [complete_chapters, total_chapters, is_complete]
 
 
 class FeatureExtractor:
@@ -15,7 +28,7 @@ class FeatureExtractor:
         self._dense_fe = DenseFeatureExtractor()
         self._sparse_fe = SparseFeatureExtractor()
 
-    def metadata(self):
+    def metadata(self) -> (DenseMeta, SparseMeta):
         assert self._fitted
         return self._dense_fe.metadata(), self._sparse_fe.metadata()
 
@@ -52,7 +65,7 @@ class DenseFeatureExtractor:
         ]
         self._dense_dims = len(self._dense_features)
 
-    def metadata(self):
+    def metadata(self) -> DenseMeta:
         return self._dense_features
 
     def fit(self, works: List[Work]):
@@ -71,21 +84,7 @@ class DenseFeatureExtractor:
         dense[:, 3] = [x.statistics.comments for x in works]
         dense[:, 4] = [x.statistics.bookmarks for x in works]
 
-        def _parse_chapters(x):
-            x = x.replace(",", "")
-            if "/" not in x:
-                complete_chapters = int(x)
-                total_chapters = complete_chapters
-            else:
-                complete_chapters, total_chapters = x.split("/")
-                complete_chapters = int(complete_chapters)
-                total_chapters = int(total_chapters) if total_chapters != "?" else 0
-            is_complete = float(complete_chapters == total_chapters)
-            return [complete_chapters, total_chapters, is_complete]
-
-        dense[:, 5:8] = np.array(
-            [_parse_chapters(x.statistics.chapters) for x in works]
-        )
+        dense[:, 5:8] = np.array([parse_chapters(x.statistics.chapters) for x in works])
         dense[:, 8] = dense[:, 2] / dense[:, 5]  # words-per-chapter
 
         for x in works:
@@ -114,7 +113,7 @@ class SparseFeatureExtractor:
     def __init__(self):
         self._label_encoders = {}
 
-    def metadata(self):
+    def metadata(self) -> SparseMeta:
         return {k: len(v.classes_) for k, v in self._label_encoders.items()}
 
     def fit(self, works: List[Work]):

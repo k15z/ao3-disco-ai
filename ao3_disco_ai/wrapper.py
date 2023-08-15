@@ -10,6 +10,7 @@ from ao3_disco_ai.arch import SparseNNV0
 from ao3_disco_ai.feature import FeatureExtractor
 from ao3_disco_ai.model import DiscoModel
 from ao3_disco_ai.structs import Work
+from ao3_disco_ai.utils import convert_id_lists
 
 
 class ModelWrapper:
@@ -24,12 +25,7 @@ class ModelWrapper:
         pt_dense = torch.FloatTensor(dense)
         pt_sparse = {}
         for name in sparse:
-            id_list, offsets = [], []
-            for row in sparse[name]:
-                offsets.append(len(id_list))
-                id_list.extend(row)
-            id_list, offsets = torch.IntTensor(id_list), torch.IntTensor(offsets)
-            pt_sparse[name] = (id_list, offsets)
+            pt_sparse[name] = convert_id_lists(sparse[name])
         return self.model_arch(pt_dense, pt_sparse)
 
     @classmethod

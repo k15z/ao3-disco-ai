@@ -6,7 +6,7 @@ import lightning.pytorch as pl
 import torch
 from torch.utils.data import DataLoader, Dataset
 
-from ao3_disco_ai.feature import FeatureStore
+from ao3_disco_ai.utils import convert_id_lists
 
 
 class DiscoDataset(Dataset):
@@ -97,11 +97,6 @@ class DiscoDataModule(pl.LightningDataModule):
         pt_dense = torch.FloatTensor(dense)
         pt_sparse = {}
         for name in sparse:
-            id_list, offsets = [], []
-            for row in sparse[name]:
-                offsets.append(len(id_list))
-                id_list.extend(row)
-            id_list, offsets = torch.IntTensor(id_list), torch.IntTensor(offsets)
-            pt_sparse[name] = (id_list, offsets)
+            pt_sparse[name] = convert_id_lists(sparse[name])
 
         return pt_dense, pt_sparse, indices, y_true

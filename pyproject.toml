@@ -18,6 +18,9 @@ tensorboardx = "^2.6.2"
 [tool.poetry.scripts]
 ao3-disco-ai = "ao3_disco_ai.cli:app"
 
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
