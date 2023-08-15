@@ -19,13 +19,11 @@ class FeatureExtractor:
         assert self._fitted
         return self._dense_fe.metadata(), self._sparse_fe.metadata()
 
-    @validate_call
     def fit(self, works: List[Work]):
         self._fitted = True
         self._dense_fe.fit(works)
         self._sparse_fe.fit(works)
 
-    @validate_call
     def transform(self, works: List[Work]):
         assert self._fitted
         return self._dense_fe.transform(works), self._sparse_fe.transform(works)
@@ -57,13 +55,11 @@ class DenseFeatureExtractor:
     def metadata(self):
         return self._dense_features
 
-    @validate_call
     def fit(self, works: List[Work]):
         self._scaler = RobustScaler()
         self._scaler.fit(self._raw_transform(works))
         logging.info("Dense features: %s", self.metadata())
 
-    @validate_call
     def transform(self, works: List[Work]) -> np.ndarray:
         return self._scaler.transform(self._raw_transform(works))
 
@@ -121,7 +117,6 @@ class SparseFeatureExtractor:
     def metadata(self):
         return {k: len(v.classes_) for k, v in self._label_encoders.items()}
 
-    @validate_call
     def fit(self, works: List[Work]):
         self._build_label_encoder("fandom", works)
         self._build_label_encoder("rating", works)
@@ -132,7 +127,6 @@ class SparseFeatureExtractor:
         self._build_label_encoder("author", works)
         logging.info("Sparse features: %s", self.metadata())
 
-    @validate_call
     def transform(self, works: List[Work]) -> Dict[str, List[List[int]]]:
         sparse_feats = {}
         for key, le in self._label_encoders.items():
@@ -167,7 +161,7 @@ class FeatureStore:
     def __init__(self, work_to_json, extractor=None):
         self._work_ids = list(work_to_json.keys())
         self._work_id_to_i = {k: v for v, k in enumerate(self._work_ids)}
-        work_jsons = [work_to_json[x] for x in self._work_ids]
+        work_jsons = [Work(**work_to_json[x]) for x in self._work_ids]
 
         self._extractor = extractor or FeatureExtractor()
         logging.info(f"Fitting feature store to {len(work_to_json)} works.")

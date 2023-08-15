@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
@@ -23,6 +23,7 @@ def build_interactions(embeddings: List[torch.tensor]) -> torch.tensor:
 class SparseArch(nn.Module):
     def __init__(self, cardinality, max_hash_size, embedding_dim):
         super().__init__()
+        self.max_hash_size = max_hash_size
         hidden_dims = max(16, int(1.6 * np.sqrt(cardinality)))
         self._embed = nn.EmbeddingBag(
             min(cardinality, max_hash_size),
@@ -33,7 +34,7 @@ class SparseArch(nn.Module):
         self._proj = nn.Linear(hidden_dims, embedding_dim)
 
     def forward(self, id_list, offsets):
-        return self._proj(self._embed(id_list, offsets))
+        return self._proj(self._embed(id_list % self.max_hash_size, offsets))
 
 
 class SparseNNV0(nn.Module):
@@ -66,17 +67,12 @@ class SparseNNV0(nn.Module):
 
         self.over_arch = nn.Linear(pre_over_dims, self.embedding_dims)
 
-    def forward(self, dense: np.ndarray, sparse: Dict[str, List[List[int]]]):
-        device = self.dense_arch.weight.device
-        embeddings = [self.dense_arch(torch.tensor(dense).to(device))]
+    def forward(
+        self, dense: torch.tensor, sparse: Dict[str, Tuple[torch.tensor, torch.tensor]]
+    ):
+        embeddings = [self.dense_arch(dense)]
         for name, sparse_arch in self.sparse_archs.items():
-            id_list, offsets = [], []
-            for row in sparse[name]:
-                offsets.append(len(id_list))
-                id_list.extend([x % self.max_hash_size for x in row])
-            id_list, offsets = torch.IntTensor(id_list).to(device), torch.IntTensor(
-                offsets
-            ).to(device)
+            id_list, offsets = sparse[name]
             embeddings.append(sparse_arch(id_list, offsets))
         if self.use_interactions:
             embeddings.append(build_interactions(embeddings))
