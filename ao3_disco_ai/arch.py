@@ -7,7 +7,8 @@ import torch.nn as nn
 from ao3_disco_ai.structs import DenseMeta, SparseMeta
 
 
-def build_interactions(embeddings: List[torch.tensor]) -> torch.tensor:
+@torch.jit.script
+def build_interactions(embeddings: List[torch.Tensor]) -> torch.Tensor:
     """Compute interactions between embeddings.
 
     Input: List of N embeddings of shape (batch_size, embedding_dim)
@@ -17,9 +18,9 @@ def build_interactions(embeddings: List[torch.tensor]) -> torch.tensor:
     for i in range(len(embeddings)):
         for j in range(i + 1, len(embeddings)):
             interactions.append(
-                torch.sum(embeddings[i] * embeddings[j], axis=1, keepdim=True)
+                torch.sum(embeddings[i] * embeddings[j], dim=1, keepdim=True)
             )
-    return torch.cat(interactions, axis=1)
+    return torch.cat(interactions, dim=1)
 
 
 class SparseArch(nn.Module):

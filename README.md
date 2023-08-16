@@ -78,18 +78,12 @@ After verifying everything works as expected locally, it's time to test it on
 the full dataset. The best way to do this is to run the deploy script which
 will do the following:
 
-1. Build a Docker container and push it to AWS ECS.
-2. Launch a head node (e.g. t2.micro).
-    - Mount an shared EBS volume and upload the data.
-    - Install tensorboard and start serving the logs.
-    - Print the IP address of the head node so you can monitor the job progress.
-3. Set up AWS Batch compute environment with EC2 spot instances (e.g. c6a.2xlarge)
-   and your Docker container.
-   - Each job will mount the shared EBS volume and use it for Tensorboard logging.
+1. Build a Docker container and push it to gcloud's Artifact Registry.
+2. Upload the local version of your datasets to gcloud Cloud Storage.
 
-At this point, you can submit your experiment runs to the AWS Batch job queue and have
-it run on the full dataset. You can monitor the progress by SSHing into the head node 
-and forwarding port 6006 (Tensorboard) to your local machine.
+Then, you can run the `gcloud batch jobs` command using the JSON templates (i.e. 
+`gcloud/batch.json`) which will launch the containers with the appropriate volume 
+mounts for the data + logs.
 
-When you're done experimenting, run the teardown script to delete the EBS volume, kill
-the head node, and delete the compute environment.
+After you've launched your experiments, you can download the logs from Cloud 
+Storage and inspect them locally with Tensorboard.

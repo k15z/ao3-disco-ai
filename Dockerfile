@@ -18,8 +18,8 @@ WORKDIR /app
 
 # Install the library
 COPY . /app
-RUN poetry install --with=dev
-RUN poetry run pip install torch
+RUN poetry install --with=dev --no-cache
+RUN poetry run pip install --no-cache-dir torch
 RUN poetry run pytest
 
 ENTRYPOINT [ "poetry", "run", "ao3-disco-ai" ]

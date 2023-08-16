@@ -106,6 +106,9 @@ def train(
         accelerator="cpu",
         max_epochs=10,
         logger=TensorBoardLogger(save_dir="lightning_logs", name=experiment_name),
+        # TODO: Investigate adding data parallelism on CPU again.
+        # devices=4,
+        # strategy="ddp",
     )
     trainer.fit(model=model, datamodule=data)
 

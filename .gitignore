@@ -132,3 +132,4 @@ dmypy.json
 data
 lightning_logs
 .DS_Store
+wrapped_model.pkl

@@ -1,2 +1,6 @@
 data
 lightning_logs
+assets
+**/__pycache__
+wrapped_model.pkl
+.pytest_cache
